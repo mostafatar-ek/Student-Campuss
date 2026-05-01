@@ -1,5 +1,7 @@
 package com.studentportal.models;
 
+import com.studentportal.dto.RegisterDTO;
+import com.studentportal.dto.EditProfileDTO;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,4 +66,18 @@ public class Student {
     public void setPosts(List<Post> posts) { this.posts = posts; }
     public List<Notification> getNotifications() { return notifications; }
     public void setNotifications(List<Notification> notifications) { this.notifications = notifications; }
+
+    public void loadFromDTO(RegisterDTO dto) {
+        this.name = dto.getName();
+        this.email = dto.getEmail();
+        this.password = dto.getPassword();
+        this.major = dto.getMajor();
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public void loadFromDTO(EditProfileDTO dto) {
+        this.name = dto.getName();
+        this.major = dto.getMajor();
+        this.bio = dto.getBio();
+    }
 }
