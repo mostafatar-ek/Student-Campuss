@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – Student Portal</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div id="auth-page" class="page active">
+    <div class="auth-container">
+        <div class="auth-logo">
+            <i class="fas fa-graduation-cap"></i>
+            <h1>Student Portal</h1>
+            <p>Connect, Learn, Grow Together</p>
+        </div>
+
+        <div class="auth-tabs">
+            <a th:href="@{/login}" class="auth-tab active">Login</a>
+            <a th:href="@{/register}" class="auth-tab">Register</a>
+        </div>
+
+        <form th:action="@{/login}" method="post" class="auth-form">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+            </div>
+            <div class="auth-error" th:if="${error}" th:text="${error}"></div>
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
+
+        <p style="text-align:center;margin-top:16px;font-size:14px;color:var(--text-muted)">
+            No account? <a th:href="@{/register}" style="color:var(--primary)">Register here</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>
