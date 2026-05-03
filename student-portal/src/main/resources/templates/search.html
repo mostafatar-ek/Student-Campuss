@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Students – Student Portal</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="app-layout">
+
+    <div th:replace="~{fragments/sidebar :: sidebar('search')}"></div>
+
+    <main class="main-content">
+        <div style="max-width:860px;margin:0 auto">
+
+            <div class="section-header">
+                <h2>Find Students</h2>
+            </div>
+
+            <!-- Search form -->
+            <form th:action="@{/students}" method="get" class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" name="q"
+                       th:value="${query}"
+                       placeholder="Search by name or major...">
+                <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            </form>
+
+            <!-- Results -->
+            <div th:if="${students != null and not #lists.isEmpty(students)}"
+                 class="students-grid">
+                <div th:each="s : ${students}" th:if="${s.id != currentUser.id}"
+                     class="student-card">
+                    <div class="avatar-md" style="margin:0 auto 12px"
+                         th:if="${s.avatar != null}">
+                        <img th:src="@{/api/uploads/{f}(f=${s.avatar})}" alt="avatar">
+                    </div>
+                    <div class="avatar-md" style="margin:0 auto 12px"
+                         th:if="${s.avatar == null}"
+                         th:text="${s.name.substring(0,1).toUpperCase()}"></div>
+                    <div class="s-name" th:text="${s.name}"></div>
+                    <div class="s-major"
+                         th:text="${s.major != null} ? ${s.major} : 'No major'"></div>
+                    <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+                        <a th:href="@{/students/{id}(id=${s.id})}"
+                           class="btn btn-ghost btn-sm">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        <a th:href="|/chat/${s.id}|"
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-comment"></i> Message
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${students == null or #lists.isEmpty(students)}"
+                 class="card" style="text-align:center;color:var(--text-muted);padding:40px">
+                <i class="fas fa-search" style="font-size:32px;opacity:0.3;display:block;margin-bottom:12px"></i>
+                No students found. Try a different search.
+            </div>
+
+        </div>
+    </main>
+</div>
+</body>
+</html>
