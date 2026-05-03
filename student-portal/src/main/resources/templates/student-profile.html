@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${student.name} + ' – Student Portal'">Student Profile</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="app-layout">
+
+    <div th:replace="~{fragments/sidebar :: sidebar('search')}"></div>
+
+    <main class="main-content">
+        <div style="max-width:680px;margin:0 auto">
+
+            <!-- Student card -->
+            <div class="profile-card">
+                <div class="profile-cover"></div>
+                <div class="profile-body">
+                    <div class="profile-avatar-wrap">
+                        <div class="avatar-lg" th:if="${student.avatar != null}">
+                            <img th:src="@{/api/uploads/{f}(f=${student.avatar})}" alt="avatar">
+                        </div>
+                        <div class="avatar-lg"
+                             th:if="${student.avatar == null}"
+                             th:text="${student.name.substring(0,1).toUpperCase()}"></div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 th:text="${student.name}"></h2>
+                        <p class="profile-major"
+                           th:text="${student.major != null} ? ${student.major} : 'No major'"></p>
+                        <p class="profile-bio"
+                           th:text="${student.bio != null} ? ${student.bio} : ''"></p>
+                        <a th:href="|/chat/${student.id}|" class="btn btn-primary">
+                            <i class="fas fa-comment"></i> Send Message
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts -->
+            <div class="section-header" style="margin-top:2rem">
+                <h3 th:text="${student.name} + '\'s Posts'">Posts</h3>
+            </div>
+
+            <div th:if="${#lists.isEmpty(posts)}"
+                 class="card" style="text-align:center;color:var(--text-muted);padding:40px">
+                No posts yet.
+            </div>
+
+            <div th:each="post : ${posts}" class="post-card">
+                <div class="post-header">
+                    <div class="avatar-sm" th:if="${student.avatar != null}">
+                        <img th:src="@{/api/uploads/{f}(f=${student.avatar})}" alt="avatar">
+                    </div>
+                    <div class="avatar-sm"
+                         th:if="${student.avatar == null}"
+                         th:text="${student.name.substring(0,1).toUpperCase()}"></div>
+                    <div class="post-meta">
+                        <div class="post-author" th:text="${student.name}"></div>
+                        <div class="post-time"
+                             th:text="${#temporals.format(post.createdAt,'dd MMM yyyy HH:mm')}"></div>
+                    </div>
+                    <span class="post-tag" th:if="${post.subjectTag != null}"
+                          th:text="${post.subjectTag}"></span>
+                </div>
+                <div class="post-content" th:text="${post.content}"></div>
+                <div class="post-attachment" th:if="${post.attachment != null}">
+                    <img th:if="${post.attachment.matches('.*\\.(jpg|jpeg|png|gif|webp)')}"
+                         th:src="@{/api/uploads/{f}(f=${post.attachment})}" alt="attachment">
+                    <a th:unless="${post.attachment.matches('.*\\.(jpg|jpeg|png|gif|webp)')}"
+                       th:href="@{/api/uploads/{f}(f=${post.attachment})}" target="_blank">
+                        <i class="fas fa-paperclip"></i>
+                        <span th:text="${post.attachment}"></span>
+                    </a>
+                </div>
+                <div class="post-actions">
+                    <span class="action-btn">
+                        <i class="fas fa-heart"></i>
+                        <span th:text="${post.likeCount}">0</span>
+                    </span>
+                    <span class="action-btn">
+                        <i class="far fa-comment"></i>
+                        <span th:text="${post.commentCount}">0</span>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+</body>
+</html>
