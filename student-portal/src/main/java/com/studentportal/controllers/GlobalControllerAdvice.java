@@ -3,7 +3,8 @@ package com.studentportal.controllers;
 import com.studentportal.models.Student;
 import com.studentportal.repos.NotifRepo;
 import com.studentportal.repos.StudentRepo;
-import jakarta.servlet.http.HttpSession;
+import com.studentportal.util.CookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -19,15 +20,15 @@ public class GlobalControllerAdvice {
     }
 
     @ModelAttribute("currentUser")
-    public Student currentUser(HttpSession session) {
-        Long id = (Long) session.getAttribute("studentId");
+    public Student currentUser(HttpServletRequest request) {
+        Long id = CookieUtil.get(request);
         if (id == null) return null;
         return studentRepo.findById(id).orElse(null);
     }
 
     @ModelAttribute("unreadNotifCount")
-    public long unreadNotifCount(HttpSession session) {
-        Long id = (Long) session.getAttribute("studentId");
+    public long unreadNotifCount(HttpServletRequest request) {
+        Long id = CookieUtil.get(request);
         if (id == null) return 0L;
         Student student = studentRepo.findById(id).orElse(null);
         if (student == null) return 0L;
