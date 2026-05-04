@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications – Student Portal</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="app-layout">
+
+    <div th:replace="~{fragments/sidebar :: sidebar('notifications')}"></div>
+
+    <main class="main-content">
+        <div style="max-width:680px;margin:0 auto">
+
+            <div class="section-header">
+                <h2>Notifications</h2>
+            </div>
+
+            <div th:if="${#lists.isEmpty(notifications)}"
+                 class="card" style="text-align:center;color:var(--text-muted);padding:40px">
+                <i class="fas fa-bell" style="font-size:32px;opacity:0.3;display:block;margin-bottom:12px"></i>
+                No notifications yet.
+            </div>
+
+            <div th:each="n : ${notifications}"
+                 th:class="${n.read} ? 'notif-item' : 'notif-item unread'">
+                <div th:class="'notif-icon ' + ${n.type}">
+                    <i th:class="${n.type == 'LIKE'} ? 'fas fa-heart' :
+                                  (${n.type == 'COMMENT'} ? 'fas fa-comment' : 'fas fa-envelope')"></i>
+                </div>
+                <div class="notif-body">
+                    <div class="notif-msg" th:text="${n.message}"></div>
+                    <div class="notif-time"
+                         th:text="${#temporals.format(n.createdAt,'dd MMM yyyy HH:mm')}"></div>
+                </div>
+                <!-- Quick action link based on type -->
+                <a th:if="${n.type == 'LIKE' or n.type == 'COMMENT'}"
+                   th:href="@{/feed}" class="btn btn-ghost btn-sm">
+                    View
+                </a>
+                <a th:if="${n.type == 'MESSAGE'}"
+                   th:href="|/chat/${n.relatedId}|"
+                   class="btn btn-ghost btn-sm">
+                    Reply
+                </a>
+            </div>
+
+        </div>
+    </main>
+</div>
+</body>
+</html>
