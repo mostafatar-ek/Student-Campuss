@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat – Student Portal</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="app-layout">
+
+    <div th:replace="~{fragments/sidebar :: sidebar('chat')}"></div>
+
+    <main class="main-content" style="padding:24px;max-width:100%">
+        <div class="chat-layout">
+
+            <!-- Left: conversations + search -->
+            <div class="chat-sidebar">
+                <div class="chat-sidebar-header">
+                    <h3>Messages</h3>
+                </div>
+
+                <div th:if="${conversations == null or #lists.isEmpty(conversations)}"
+                     style="padding:16px;color:var(--text-muted);font-size:13px">
+                    No conversations yet
+                </div>
+
+                <a th:each="conv : ${conversations}"
+                   th:href="|/chat/${conv.id}|"
+                   th:class="${partner != null and partner.id == conv.id} ? 'conversation-item active' : 'conversation-item'">
+                    <div class="avatar-sm" th:if="${conv.avatar != null}">
+                        <img th:src="@{/api/uploads/{f}(f=${conv.avatar})}" alt="avatar">
+                    </div>
+                    <div class="avatar-sm"
+                         th:if="${conv.avatar == null}"
+                         th:text="${conv.name.substring(0,1).toUpperCase()}"></div>
+                    <div class="conv-info">
+                        <div class="conv-name" th:text="${conv.name}"></div>
+                        <div class="conv-preview" th:text="${conv.major}"></div>
+                    </div>
+                </a>
+
+                <!-- Search for new chat partner -->
+                <div class="chat-new">
+                    <form th:action="@{/students}" method="get">
+                        <input type="text" name="q"
+                               placeholder="Search students..."
+                               style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;font-family:inherit">
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: conversation or placeholder -->
+            <div class="chat-window">
+
+                <!-- Placeholder -->
+                <div th:if="${partner == null}" class="chat-placeholder">
+                    <i class="fas fa-comments"></i>
+                    <p>Select a conversation or search for a student</p>
+                </div>
+
+                <!-- Active conversation -->
+                <div th:if="${partner != null}" style="display:flex;flex-direction:column;height:100%">
+
+                    <div class="chat-header">
+                        <div class="avatar-sm" th:if="${partner.avatar != null}">
+                            <img th:src="@{/api/uploads/{f}(f=${partner.avatar})}" alt="avatar">
+                        </div>
+                        <div class="avatar-sm"
+                             th:if="${partner.avatar == null}"
+                             th:text="${partner.name.substring(0,1).toUpperCase()}"></div>
+                        <span th:text="${partner.name}"></span>
+                        <span th:if="${partner.major != null}"
+                              style="font-weight:400;font-size:13px;color:var(--text-muted)"
+                              th:text="'· ' + ${partner.major}"></span>
+                    </div>
+
+                    <!--
+                        Messages use flex-direction:column-reverse so the browser
+                        naturally shows the bottom (newest) without any JavaScript.
+                        The query returns messages newest-first (DESC), so the first
+                        item in the list renders visually at the bottom.
+                    -->
+                    <div class="chat-messages">
+                        <div th:if="${messages == null or #lists.isEmpty(messages)}"
+                             style="text-align:center;color:var(--text-muted);padding:40px 0;font-size:14px">
+                            No messages yet. Say hello!
+                        </div>
+                        <div th:each="msg : ${messages}"
+                             th:class="${msg.sender.id == currentUser.id} ? 'msg-row mine' : 'msg-row'">
+                            <div class="avatar-sm"
+                                 th:if="${msg.sender.id != currentUser.id and msg.sender.avatar == null}"
+                                 th:text="${msg.sender.name.substring(0,1).toUpperCase()}"></div>
+                            <div class="avatar-sm"
+                                 th:if="${msg.sender.id != currentUser.id and msg.sender.avatar != null}">
+                                <img th:src="@{/api/uploads/{f}(f=${msg.sender.avatar})}" alt="avatar">
+                            </div>
+                            <div>
+                                <div class="msg-bubble">
+                                    <span th:if="${msg.content != null}" th:text="${msg.content}"></span>
+                                    <div class="msg-attachment" th:if="${msg.attachment != null}">
+                                        <img th:if="${msg.attachment.matches('.*\\.(jpg|jpeg|png|gif|webp)')}"
+                                             th:src="@{/api/uploads/{f}(f=${msg.attachment})}"
+                                             alt="attachment" style="max-width:200px;border-radius:8px">
+                                        <a th:unless="${msg.attachment.matches('.*\\.(jpg|jpeg|png|gif|webp)')}"
+                                           th:href="@{/api/uploads/{f}(f=${msg.attachment})}"
+                                           target="_blank">
+                                            <i class="fas fa-file"></i>
+                                            <span th:text="${msg.attachment}"></span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="msg-time"
+                                     th:text="${#temporals.format(msg.sentAt,'HH:mm  dd/MM')}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Send message form -->
+                    <div class="chat-input-area">
+                        <form th:action="|/chat/${partner.id}/send|" method="post"
+                              enctype="multipart/form-data"
+                              style="display:flex;gap:8px;align-items:flex-end;width:100%">
+                            <textarea name="content" placeholder="Type a message..."
+                                      rows="2"
+                                      style="flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:12px;resize:none;font-size:14px;font-family:inherit;outline:none"></textarea>
+                            <div class="chat-input-actions">
+                                <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+                                    <i class="fas fa-paperclip"></i>
+                                    <input type="file" name="file" style="display:none">
+                                </label>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>
