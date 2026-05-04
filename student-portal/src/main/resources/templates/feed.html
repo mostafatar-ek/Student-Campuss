@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed – Student Portal</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="app-layout">
+
+    <div th:replace="~{fragments/sidebar :: sidebar('feed')}"></div>
+
+    <main class="main-content">
+        <div class="feed-wrapper">
+
+            <!-- Header + tag filters -->
+            <div class="section-header">
+                <h2>Feed</h2>
+            </div>
+            <div class="feed-filters" style="margin-bottom:20px">
+                <a th:href="@{/feed}"
+                   th:class="${currentTag == null} ? 'chip active' : 'chip'">All</a>
+                <a th:href="@{/feed(tag='Math')}"
+                   th:class="${currentTag == 'Math'} ? 'chip active' : 'chip'">Math</a>
+                <a th:href="@{/feed(tag='Physics')}"
+                   th:class="${currentTag == 'Physics'} ? 'chip active' : 'chip'">Physics</a>
+                <a th:href="@{/feed(tag='CS')}"
+                   th:class="${currentTag == 'CS'} ? 'chip active' : 'chip'">CS</a>
+                <a th:href="@{/feed(tag='Chemistry')}"
+                   th:class="${currentTag == 'Chemistry'} ? 'chip active' : 'chip'">Chemistry</a>
+                <a th:href="@{/feed(tag='Biology')}"
+                   th:class="${currentTag == 'Biology'} ? 'chip active' : 'chip'">Biology</a>
+                <a th:href="@{/feed(tag='Engineering')}"
+                   th:class="${currentTag == 'Engineering'} ? 'chip active' : 'chip'">Engineering</a>
+            </div>
+
+            <!-- Flash error -->
+            <div class="auth-error card" th:if="${error}" th:text="${error}"
+                 style="margin-bottom:16px"></div>
+
+            <!-- Create Post -->
+            <div class="card create-post">
+                <form th:action="@{/feed/post}" method="post" enctype="multipart/form-data">
+                    <div class="create-post-top">
+                        <div class="avatar-sm" th:if="${currentUser.avatar != null}">
+                            <img th:src="@{/api/uploads/{f}(f=${currentUser.avatar})}" alt="avatar">
+                        </div>
+                        <div class="avatar-sm"
+                             th:if="${currentUser.avatar == null}"
+                             th:text="${currentUser.name.substring(0,1).toUpperCase()}"></div>
+                        <textarea name="content" placeholder="Share something with your classmates..."
+                                  rows="3"></textarea>
+                    </div>
+                    <div class="create-post-bottom">
+                        <div class="create-post-options">
+                            <label class="btn btn-ghost">
+                                <i class="fas fa-paperclip"></i> Attachment
+                                <input type="file" name="file" style="display:none">
+                            </label>
+                            <select name="subjectTag">
+                                <option value="">No Tag</option>
+                                <option value="Math">Math</option>
+                                <option value="Physics">Physics</option>
+                                <option value="CS">CS</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Biology">Biology</option>
+                                <option value="Engineering">Engineering</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Posts -->
+            <div th:if="${#lists.isEmpty(posts)}"
+                 class="card" style="text-align:center;color:var(--text-muted);padding:40px">
+                No posts yet. Be the first to share something!
+            </div>
+
+            <div th:each="post : ${posts}" class="post-card">
+                <div class="post-header">
+                    <!-- Author avatar -->
+                    <div class="avatar-sm" th:if="${post.author.avatar != null}">
+                        <img th:src="@{/api/uploads/{f}(f=${post.author.avatar})}" alt="avatar">
+                    </div>
+                    <div class="avatar-sm"
+                         th:if="${post.author.avatar == null}"
+                         th:text="${post.author.name.substring(0,1).toUpperCase()}"></div>
+
+                    <div class="post-meta">
+                        <a th:href="@{/students/{id}(id=${post.author.id})}"
+                           class="post-author" th:text="${post.author.name}"></a>
+                        <div class="post-time"
+                             th:text="${#temporals.format(post.createdAt,'dd MMM yyyy HH:mm')}"></div>
+                    </div>
+
+                    <span class="post-tag"
+                          th:if="${post.subjectTag != null}"
+                          th:text="${post.subjectTag}"></span>
+
+                    <!-- Delete button (own posts only) -->
+                    <form th:if="${currentUser.id == post.author.id}"
+                          th:action="@{/posts/{id}/delete(id=${post.id})}"
+                          method="post" style="margin-left:auto">
+                        <button type="submit" class="post-delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="post-content" th:text="${post.content}"></div>
+
+                <!-- Attachment -->
+                <div class="post-attachment" th:if="${post.attachment != null}">
+                    <img th:if="${post.attachment.matches('.*\\.(jpg|jpeg|png|gif|webp)')}"
+                         th:src="@{/api/uploads/{f}(f=${post.attachment})}" alt="attachment">
+                    <a th:unless="${post.attachment.matches('.*\\.(jpg|jpeg|png|gif|webp)')}"
+                       th:href="@{/api/uploads/{f}(f=${post.attachment})}" target="_blank">
+                        <i class="fas fa-paperclip"></i>
+                        <span th:text="${post.attachment}"></span>
+                    </a>
+                </div>
+
+                <!-- Actions: like + comments toggle -->
+                <div class="post-actions">
+
+                    <!-- Like form -->
+                    <form th:action="@{/posts/{id}/like(id=${post.id})}" method="post"
+                          style="display:inline">
+                        <button type="submit"
+                                th:class="${post.likedByCurrentUser} ? 'action-btn liked' : 'action-btn'">
+                            <i th:class="${post.likedByCurrentUser} ? 'fas fa-heart' : 'far fa-heart'"></i>
+                            <span th:text="${post.likeCount}">0</span>
+                        </button>
+                    </form>
+
+                    <!-- Comments toggle label -->
+                    <label th:for="'comments-' + ${post.id}" class="action-btn" style="cursor:pointer">
+                        <i class="far fa-comment"></i>
+                        <span th:text="${post.commentCount}">0</span> comments
+                    </label>
+                </div>
+
+                <!-- Comments expandable (CSS checkbox trick – no JS) -->
+                <input type="checkbox" th:id="'comments-' + ${post.id}"
+                       style="display:none" class="comments-toggle">
+                <div class="comments-section">
+                    <!-- Existing comments -->
+                    <div th:each="c : ${@postService.getComments(post.id)}" class="comment-item"
+                         style="padding:8px 16px;display:flex;gap:10px;align-items:flex-start">
+                        <div class="avatar-sm" style="width:28px;height:28px;font-size:12px"
+                             th:if="${c.author.avatar == null}"
+                             th:text="${c.author.name.substring(0,1).toUpperCase()}"></div>
+                        <div class="avatar-sm" style="width:28px;height:28px" th:if="${c.author.avatar != null}">
+                            <img th:src="@{/api/uploads/{f}(f=${c.author.avatar})}" alt="avatar">
+                        </div>
+                        <div style="flex:1">
+                            <span class="comment-author" th:text="${c.author.name}"></span>
+                            <p class="comment-text" th:text="${c.content}"></p>
+                            <span class="comment-time"
+                                  th:text="${#temporals.format(c.createdAt,'dd MMM HH:mm')}"></span>
+                        </div>
+                        <form th:if="${currentUser.id == c.author.id}"
+                              th:action="@{/posts/{pid}/comments/{cid}/delete(pid=${post.id},cid=${c.id})}"
+                              method="post">
+                            <button type="submit" class="comment-delete"
+                                    style="opacity:1;color:var(--danger);background:none;border:none;cursor:pointer;padding:2px 6px">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Add comment form -->
+                    <div class="comment-input">
+                        <form th:action="@{/posts/{id}/comment(id=${post.id})}"
+                              method="post" style="display:flex;gap:8px;width:100%">
+                            <textarea name="content" placeholder="Write a comment..."
+                                      rows="2" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;resize:none;font-size:13px;font-family:inherit;outline:none"></textarea>
+                            <button type="submit" class="btn btn-primary btn-sm">Send</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+</body>
+</html>
