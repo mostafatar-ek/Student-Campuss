@@ -27,6 +27,11 @@ public class Student {
     private String bio;
     private String avatar;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean verified = false;
+
+    private String verificationCode;
+
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -60,6 +65,10 @@ public class Student {
     public void setBio(String bio) { this.bio = bio; }
     public String getAvatar() { return avatar; }
     public void setAvatar(String avatar) { this.avatar = avatar; }
+    public boolean isVerified() { return verified; }
+    public void setVerified(boolean verified) { this.verified = verified; }
+    public String getVerificationCode() { return verificationCode; }
+    public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public List<Post> getPosts() { return posts; }

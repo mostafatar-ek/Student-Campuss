@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="sidebar(activeNav)" class="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-graduation-cap"></i>
+        <span>StudyHub</span>
+    </div>
+
+    <ul class="sidebar-menu">
+        <li>
+            <a th:href="@{/feed}"
+               th:class="${activeNav == 'feed'} ? 'active' : ''">
+                <i class="fas fa-home"></i> Feed
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/chat}"
+               th:class="${activeNav == 'chat'} ? 'active' : ''">
+                <i class="fas fa-comments"></i> Chat
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/students}"
+               th:class="${activeNav == 'search'} ? 'active' : ''">
+                <i class="fas fa-search"></i> Search
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/notifications}"
+               th:class="${activeNav == 'notifications'} ? 'active' : ''">
+                <i class="fas fa-bell"></i> Notifications
+                <span class="badge"
+                      th:if="${unreadNotifCount > 0}"
+                      th:text="${unreadNotifCount}"></span>
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/profile}"
+               th:class="${activeNav == 'profile'} ? 'active' : ''">
+                <i class="fas fa-user"></i> Profile
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-user" th:if="${currentUser != null}">
+        <div class="avatar-sm" th:if="${currentUser.avatar != null}">
+            <img th:src="@{/api/uploads/{f}(f=${currentUser.avatar})}" alt="avatar">
+        </div>
+        <div class="avatar-sm"
+             th:if="${currentUser.avatar == null}"
+             th:text="${currentUser.name.substring(0,1).toUpperCase()}"></div>
+        <div>
+            <div class="sidebar-username" th:text="${currentUser.name}"></div>
+            <form th:action="@{/logout}" method="post" style="margin:0">
+                <button type="submit" class="logout-link"
+                        style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;color:var(--text-muted)">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+</body>
+</html>
